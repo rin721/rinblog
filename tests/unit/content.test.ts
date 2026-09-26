@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { readContent, validateContent, validateFriendPages, validateFriendSource } from "../../scripts/check-content";
+import { createPost, isValidPostId } from "../../scripts/new-post";
 import { categoryConfig, friendsMarkdownConfig, imagesPageConfig, resolveCategoryLabel } from "../../src/config";
 
 describe("内容协议", () => {
@@ -41,7 +45,7 @@ describe("内容协议", () => {
 		expect(errors.join("\n")).toContain("title");
 	});
 
-	it("type 缺省为 home，category 必须由文章提供", async () => {
+	it("type 缺省为 home，category 可缺省或留空", async () => {
 		const record = {
 			file: `${process.cwd()}/content/posts/example/zh.md`,
 			id: "example",
@@ -51,7 +55,46 @@ describe("内容协议", () => {
 		};
 		expect(await validateContent([record])).toEqual([]);
 		const missingCategory = await validateContent([{ ...record, data: { ...record.data, category: undefined } }]);
-		expect(missingCategory.join("\n")).toContain("category");
+		expect(missingCategory).toEqual([]);
+		const emptyCategory = await validateContent([{ ...record, data: { ...record.data, category: "" } }]);
+		expect(emptyCategory).toEqual([]);
+	});
+
+	it("new-post 接受安全的多级路径并允许省略分类", async () => {
+		const root = await fs.mkdtemp(path.join(os.tmpdir(), "journal-new-post-"));
+		try {
+			const result = createPost({ id: "blog/ndp-responder-for-ipv6-subnet", root });
+			expect(result.type).toBe("home");
+			expect(result.category).toBe("");
+			const zh = await fs.readFile(path.join(result.directory, "zh.md"), "utf8");
+			const en = await fs.readFile(path.join(result.directory, "en.md"), "utf8");
+			expect(zh).toContain("type: home");
+			expect(zh).toContain('category: ""');
+			expect(en).toContain('category: ""');
+			const records = await readContent(root);
+			expect(records.map((record) => [record.id, record.locale]).sort((a, b) => a[1].localeCompare(b[1]))).toEqual([
+				["blog/ndp-responder-for-ipv6-subnet", "en"],
+				["blog/ndp-responder-for-ipv6-subnet", "zh"],
+			]);
+			expect(await validateContent(records, root)).toEqual([]);
+		} finally {
+			await fs.rm(root, { recursive: true, force: true });
+		}
+	});
+
+	it("new-post 可显式分类并拒绝危险路径和重复目录", async () => {
+		const root = await fs.mkdtemp(path.join(os.tmpdir(), "journal-new-post-"));
+		try {
+			const result = createPost({ id: "blog/entry", category: "custom-topic", root });
+			expect(await fs.readFile(path.join(result.directory, "zh.md"), "utf8")).toContain("category: \"custom-topic\"");
+			expect(() => createPost({ id: "../escape", root })).toThrow();
+			expect(() => createPost({ id: "blog\\escape", root })).toThrow();
+			expect(() => createPost({ id: "blog/entry", root })).toThrow("已存在");
+			expect(isValidPostId("blog/valid-entry")).toBe(true);
+			expect(isValidPostId("blog//invalid")).toBe(false);
+		} finally {
+			await fs.rm(root, { recursive: true, force: true });
+		}
 	});
 
 	it("分类可用稳定 ID 新增与重命名中英文显示名", () => {

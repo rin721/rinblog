@@ -2,7 +2,7 @@
 
 ## 决策
 
-文章使用独立的 `type` 与 `category` 字段。`type`（`home`、`diary`、`images`）决定内容进入哪个列表；`category` 是文章自定义的稳定分类 ID，只负责分类展示与筛选。`src/config.ts` 仅可选提供分类的中英文显示名，并为不同 type 配置默认分类。未填写 `type` 的内容归入 `home`，未填写 `category` 时使用该 type 的默认分类。
+文章使用独立的 `type` 与 `category` 字段。`type`（`home`、`diary`、`images`）决定内容进入哪个列表；`category` 是文章自定义的稳定分类 ID，只负责分类展示与筛选。`src/config.ts` 仅可选提供分类的中英文显示名，不限制可用分类。未填写 `type` 的内容归入 `home`；`category` 可缺省或为空，表示未分类，不会按 `type` 推导。
 
 日记和图片各有中英文静态分页。它们只从首页排除，仍进入归档、分类、标签、搜索和 RSS。图片分区要求每篇内容有封面或正文图片，图库每篇文章只显示一张卡片；文章详情沿用现有模板。
 

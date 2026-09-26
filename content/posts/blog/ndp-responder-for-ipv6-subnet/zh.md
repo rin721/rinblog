@@ -1,10 +1,14 @@
 ---
 title: "在独立服务器上用 NDP Responder 让 IPv6 子网设备上网"
-publishedAt: 2026-09-25T08:00:00Z
-category: tech
+publishedAt: 2026-09-26T08:00:00Z
+type: home
+category: "tech"
 layout: text # text | illustrated | gallery
 tags: ["IPv6","NDP Proxy","网络","Linux","Go"]
-draft: true # 草稿只在本地开发预览中可见
+draft: true
+# 图片 type 至少需要 cover 或正文图片
+# cover: ./cover.png
+# coverAlt: "图片替代文字"
 ---
 
 ### 前言

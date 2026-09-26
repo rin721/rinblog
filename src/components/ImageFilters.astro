@@ -12,7 +12,7 @@ interface Props {
 }
 
 const { posts, locale } = Astro.props;
-const categories = [...new Map(posts.map((post) => [post.data.categoryId, post.data.category])).entries()]
+const categories = [...new Map(posts.filter((post) => post.data.categoryId).map((post) => [post.data.categoryId, post.data.category])).entries()]
 	.sort(([a], [b]) => a.localeCompare(b));
 const tags = [...new Set(posts.flatMap((post) => post.data.tags))].sort((a, b) => a.localeCompare(b));
 const labels = {

@@ -83,7 +83,9 @@ function resolveImage(
  * 虚拟模块可能是相对 URL 字符串，三者都要归一化成可用的地址或元数据。
  */
 function collect(entry: PostEntry): BlogPost {
-	const [group, language] = entry.id.split("/");
+	const localeSeparator = entry.id.lastIndexOf("/");
+	const group = entry.id.slice(0, localeSeparator);
+	const language = entry.id.slice(localeSeparator + 1);
 	const locale = (language === "en" ? "en" : "zh") as AppLocale;
 	const body = entry.body ?? "";
 	const type = entry.data.type ?? "home";

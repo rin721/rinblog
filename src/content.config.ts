@@ -25,7 +25,7 @@ const posts = defineCollection({
 			title: z.string().trim().min(1),
 			publishedAt: z.coerce.date(),
 			type: z.enum(["home", "diary", "images"]).default("home"),
-			category: z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+			category: z.string().trim().regex(/^(?:[a-z0-9]+(?:-[a-z0-9]+)*)?$/).default(""),
 			layout: z.enum(["text", "illustrated", "gallery"]),
 			tags: z.array(z.string().trim().min(1)).min(1),
 			summary: z.string().optional(),

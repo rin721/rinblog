@@ -40,7 +40,7 @@ pnpm preview --port 4330
 | `pnpm preview` | 提供构建产物，不显示草稿 |
 | `pnpm test:e2e` | 使用独立静态服务进行浏览器验收并输出截图证据 |
 | `pnpm lint` / `pnpm format` | Biome 检查与格式化 |
-| `pnpm new-post <id>` | 新建 `content/posts/<id>/{zh,en}.md` 草稿 |
+| `pnpm new-post <path>` | 新建 `content/posts/<path>/{zh,en}.md` 草稿；分类可选 |
 | `pnpm verify` | 完整验收链路 |
 
 首次运行浏览器测试前执行 `pnpm exec playwright install chromium`。测试报告位于 `playwright-report/`，失败证据位于 `test-results/`，均为忽略的产物。

@@ -2,12 +2,13 @@
 
 ## 新增文章
 
-创建 `content/posts/my-entry/zh.md`，目录名使用小写英文、数字和连字符。目录标识组成永久链接（中文 `/posts/my-entry/`，英文 `/en/posts/my-entry/`），同一目录下的 `en.md` 是对应英文版本。推荐用生成命令创建中英文草稿：
+创建 `content/posts/my-entry/zh.md`，目录路径的每一级使用小写英文、数字和连字符；可用 `/` 建立子目录，例如 `blog/my-entry`。完整相对路径组成永久链接（中文 `/posts/blog/my-entry/`，英文 `/en/posts/blog/my-entry/`），同一目录下的 `en.md` 是对应英文版本。推荐用生成命令创建中英文草稿：
 
 ```powershell
 pnpm new-post my-entry --type home   # 生成 zh.md 与 en.md 两份草稿
-pnpm new-post my-diary --type diary
-pnpm new-post my-images --type images
+pnpm new-post blog/my-diary --type diary
+pnpm new-post gallery/my-images --type images
+pnpm new-post blog/another-entry --category blog # 分类可选
 ```
 
 分别编辑这两个文件。下面是项目支持的双语模板（译文由作者撰写，不会自动翻译）：
@@ -19,7 +20,7 @@ pnpm new-post my-images --type images
 title: "今天注意到的一件小事"
 publishedAt: 2026-09-23T08:00:00Z
 type: home # home | diary | images
-category: article # 任意分类 ID；省略时取该 type 的默认分类
+category: article # 可选；留空或省略表示未分类
 layout: illustrated # text | illustrated | gallery
 tags: ["日常", "观察"]
 summary: "可选摘要；删除此行则从正文生成摘要。"
@@ -42,7 +43,7 @@ draft: true
 title: "A small thing I noticed today"
 publishedAt: 2026-09-23T08:00:00Z
 type: home
-category: article
+category: article # 可选；留空或省略表示未分类
 layout: illustrated
 tags: ["Everyday", "Observation"]
 summary: "Optional English summary. Remove this line to generate one from the body."
@@ -58,12 +59,12 @@ Write the English version here. Keep image paths relative to this directory:
 ![Morning light by the window](./morning.png)
 ```
 
-标题、日期、展示形式（`layout`）、分类 `category` 及至少一个标签必填。`type` 决定文章列表归属；省略时默认为 `home`。`category` 是文章自定义的分类 ID。每种语言的标题、摘要、标签和正文都应使用该语言。中英文通常共享发布日期、type、category、展示形式和图片文件；`coverAlt` 则应按语言翻译。日期统一写成带 `Z` 的 UTC 时间。修改文章目录名会改变 URL，应同时处理旧链接。
+标题、日期、展示形式（`layout`）及至少一个标签必填。`type` 决定文章列表归属；省略时默认为 `home`。`category` 是可选的文章自定义分类 ID，缺省或空字符串表示未分类。每种语言的标题、摘要、标签和正文都应使用该语言。中英文通常共享发布日期、type、category、展示形式和图片文件；`coverAlt` 则应按语言翻译。日期统一写成带 `Z` 的 UTC 时间。修改文章目录路径会改变 URL，应同时处理旧链接。
 
 ## 用途与展示形式
 
 - `type`：`home`（首页列表）、`diary`（独立日记页）、`images`（独立图片页）。日记和图片文章不出现在首页，但仍会进入归档、分类、标签、搜索及 RSS；详情页继续使用同一文章模板。
-- `category`：文章自定义的稳定分类 ID，不受配置列表限制，必须由文章提供。`src/config.ts` 的 `categoryConfig.labels` 可选提供中英文显示名；缺失时显示分类 ID。发文命令支持 `--category <分类ID>`。
+- `category`：可选的文章自定义稳定分类 ID，不受配置列表限制。未提供分类时，文章详情显示“未分类”，归档可按未分类筛选；分类侧栏和图片筛选不列出空分类。`src/config.ts` 的 `categoryConfig.labels` 可选提供中英文显示名；缺失时显示分类 ID。发文命令可通过 `--category <分类ID>` 指定分类。
 - `layout`：`text`（文字）、`illustrated`（图文）、`gallery`（图文展示样式）。图片 type 的每篇文章必须提供 `cover` 或至少一张正文图片，图片页每篇文章以一张封面图展示。
 - 日记页使用现有文章列表卡片；图片页使用响应式瀑布流，只显示图片、标题和日期。默认移动端、平板为 2 列、桌面为 4 列，可在 `src/config.ts` 的 `imagesPageConfig.gallery` 中分别调整 `columns.mobile`、`columns.tablet`、`columns.desktop`，以及列间距 `gap`（像素）。`imagesPageConfig.sidebar.list` 与 `imagesPageConfig.sidebar.post` 分别控制图片列表页和图片文章详情页侧栏，默认均为 `true`。两个页面均支持中英文路由及每页 10 条分页。
 - 图片页顶部提供分类、标签和关键词筛选，筛选状态保存在 `category`、`tag`、`q` 查询参数中，支持复制链接和刷新后恢复。筛选结果覆盖全部图片文章，并继续按每页 10 条分页。

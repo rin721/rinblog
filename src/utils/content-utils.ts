@@ -67,6 +67,7 @@ export async function getCategoryList(locale: AppLocale): Promise<Category[]> {
 	const count: { [key: string]: number } = {};
 	allBlogPosts.forEach((post) => {
 		const id = post.data.categoryId;
+		if (!id) return;
 		count[id] = count[id] ? count[id] + 1 : 1;
 	});
 

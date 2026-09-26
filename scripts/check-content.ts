@@ -57,15 +57,25 @@ export async function validateFriendPages(root = process.cwd()): Promise<string[
 export async function readContent(root = process.cwd()): Promise<ContentRecord[]> {
   const base = path.join(root, 'content/posts');
   const records: ContentRecord[] = [];
-  for (const group of await readdir(base, { withFileTypes: true })) {
-    if (!group.isDirectory()) continue;
-    for (const name of await readdir(path.join(base, group.name))) {
-      if (!name.endsWith('.md')) continue;
-      const file = path.join(base, group.name, name);
+  async function visit(directory: string, relativeGroup: string) {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const file = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        await visit(file, relativeGroup ? path.join(relativeGroup, entry.name) : entry.name);
+        continue;
+      }
+      if (!entry.isFile() || !['zh.md', 'en.md'].includes(entry.name) || !relativeGroup) continue;
       const { data, content } = matter(await readFile(file, 'utf8'));
-      records.push({ file, id: group.name, locale: name.replace(/\.md$/, '') as 'zh' | 'en', data, body: content });
+      records.push({
+        file,
+        id: relativeGroup.split(path.sep).join('/'),
+        locale: entry.name.slice(0, -3) as 'zh' | 'en',
+        data,
+        body: content,
+      });
     }
   }
+  await visit(base, '');
   return records;
 }
 export async function validateContent(records: ContentRecord[], root = process.cwd()): Promise<string[]> {
@@ -75,7 +85,7 @@ export async function validateContent(records: ContentRecord[], root = process.c
   for (const record of records) {
     const { data, file, id, locale, body } = record;
     const error = (message: string) => errors.push(`${path.relative(root, file)}: ${message}`);
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) error('内容目录标识必须为小写字母、数字和连字符');
+    if (!id.split('/').every(segment => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(segment))) error('内容目录标识每级必须为小写字母、数字和连字符');
     if (!['zh', 'en'].includes(locale)) error('语言文件必须为 zh.md 或 en.md');
     const key = `${id}/${locale}`;
     if (ids.has(key)) error(`重复内容标识 ${key}`); ids.add(key);
@@ -85,7 +95,7 @@ export async function validateContent(records: ContentRecord[], root = process.c
     const type = data.type ?? 'home';
     if (!['home','diary','images'].includes(String(type))) error('type 必须为 home / diary / images');
     const category = data.category;
-    if (typeof category !== 'string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(category)) error(`category 必须是非空的小写分类 ID；当前值：${String(category)}`);
+    if (category !== undefined && (typeof category !== 'string' || (category !== '' && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(category)))) error(`category 必须为空或为小写分类 ID；当前值：${String(category)}`);
     if (!['text','illustrated','gallery'].includes(String(data.layout))) error('layout 必须为 text / illustrated / gallery');
     if (!Array.isArray(data.tags) || !data.tags.length || data.tags.some(tag => typeof tag !== 'string' || !tag.trim() || /[\/#?%]/.test(tag))) error('tags 至少包含一个非空标签，不能包含 / # ? %');
     if (Array.isArray(data.tags) && new Set(data.tags).size !== data.tags.length) error('tags 包含重复标签');
@@ -109,7 +119,7 @@ export async function validateContent(records: ContentRecord[], root = process.c
     if (versions.length < 2) continue;
     const metadata = (record: ContentRecord) => ({
       type: record.data.type ?? "home",
-      category: record.data.category,
+      category: record.data.category ?? "",
     });
     const expected = metadata(versions[0]);
     for (const record of versions.slice(1)) {
