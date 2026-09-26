@@ -1,0 +1,15 @@
+---
+import type { GetStaticPaths } from "astro";
+import Pagination from "../../../components/control/Pagination.astro";
+import PostPage from "../../../components/PostPage.astro";
+import { sectionConfig } from "../../../config";
+import { PAGE_SIZE } from "../../../constants/constants";
+import MainGridLayout from "../../../layouts/MainGridLayout.astro";
+import { getTypePosts } from "../../../utils/content-utils";
+export const getStaticPaths = (async ({ paginate }) =>
+	paginate(await getTypePosts("en", "diary"), {
+		pageSize: PAGE_SIZE,
+	})) satisfies GetStaticPaths;
+const { page } = Astro.props;
+---
+<MainGridLayout title={sectionConfig.diary.en} locale="en">{page.data.length === 0 && <div class="card-base p-8 text-center text-50">Nothing here yet.</div>}<PostPage page={page} locale="en" /><Pagination page={page} locale="en" /></MainGridLayout>

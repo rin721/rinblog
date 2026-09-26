@@ -63,25 +63,66 @@ export const siteText: Record<
 	},
 };
 
-/** 内容类型到分类名的映射：侧栏分类与归档筛选复用 fuwari 的分类组件。 */
-export const kindLabels: Record<
-	AppLocale,
-	Record<"article" | "diary" | "note", string>
-> = {
-	zh: { article: "文章", diary: "日记", note: "学习笔记" },
-	en: { article: "Essay", diary: "Diary", note: "Study note" },
+export type ContentType = "home" | "diary" | "images";
+export type CategoryLabel = Partial<Record<AppLocale, string>>;
+export type CategoryLabels = Record<string, CategoryLabel>;
+
+/** 分类 ID 与显示名分离；重命名不会改变内容归属或链接。 */
+export const categoryConfig: {
+	labels: CategoryLabels;
+} = {
+	labels: {
+		article: { zh: "文章", en: "Essay" },
+		diary: { zh: "日记", en: "Diary" },
+		note: { zh: "学习笔记", en: "Study note" },
+	},
 };
+
+export function resolveCategoryLabel(
+	id: string,
+	locale: AppLocale,
+	labels = categoryConfig.labels,
+): string {
+	return (
+		labels[id]?.[locale] ?? labels[id]?.[locale === "zh" ? "en" : "zh"] ?? id
+	);
+}
+
+export const sectionConfig: Record<ContentType, Record<AppLocale, string>> = {
+	home: { zh: "首页", en: "Home" },
+	diary: { zh: "日记", en: "Diary" },
+	images: { zh: "图片", en: "Images" },
+};
+
+/** 图片页瀑布流显示设置，列数按移动端、平板和桌面断点分别配置。 */
+export const imagesPageConfig = {
+	gallery: {
+		columns: { mobile: 2, tablet: 2, desktop: 3 },
+		gap: 16,
+	},
+	sidebar: {
+		list: true,
+		post: true,
+	},
+} as const;
+
+/** 全站 friend Markdown 卡片的响应式布局。 */
+export const friendsMarkdownConfig = {
+	columns: { mobile: 1, tablet: 2, desktop: 3 },
+	gap: 16,
+} as const;
 
 export const navBarConfig: NavBarConfig = {
 	links: [
 		LinkPreset.Home,
 		LinkPreset.Archive,
 		LinkPreset.About,
-		{
-			name: "GitHub",
-			url: "https://github.com/rin721", // Internal links should not include the base path, as it is automatically added
-			external: true, // Show an external link icon and will open in a new tab
-		},
+		LinkPreset.Friends,
+		// {
+		// 	name: "GitHub",
+		// 	url: "https://github.com/rin721", // Internal links should not include the base path, as it is automatically added
+		// 	external: true, // Show an external link icon and will open in a new tab
+		// },
 	],
 };
 
@@ -89,7 +130,42 @@ export const profileConfig: ProfileConfig = {
 	avatar: "assets/images/demo-avatar.png",
 	name: "Xiaolin",
 	bio: "这是一处等待真实故事的写作空间。",
-	links: [],
+	links: [
+		{
+			name: "Twitter",
+			icon: "fa6-brands:twitter", // Visit https://icones.js.org/ for icon codes
+			// You will need to install the corresponding icon set if it's not already included
+			// `pnpm add @iconify-json/<icon-set-name>`
+			url: "https://twitter.com/rin721qwq",
+		},
+		// {
+		// 	name: "Steam",
+		// 	icon: "fa6-brands:steam",
+		// 	url: "https://store.steampowered.com",
+		// },
+		// {
+		// 	name: "Telegram",
+		// 	icon: "fa6-brands:telegram",
+		// 	url: "https://t.me/rin721qwq",
+		// 	// external: true, // Show an external link icon and will open in a new tab
+		// 	// Note: Telegram links should use the format https://t.me/username for best compatibility with link preview plugins. Links using the tg:// protocol may not work correctly with some plugins.
+		// },
+		{
+			name: "Email",
+			icon: "fa6-solid:envelope",
+			url: "mailto:rin721qwq@gmail.com",
+		},
+		{
+			name: "GitHub",
+			icon: "fa6-brands:github",
+			url: "https://github.com/rin721",
+		},
+		// {
+		// 	name: "BiliBili",
+		// 	icon: "fa6-brands:bilibili",
+		// 	url: "https://space.bilibili.com/403597865", // Replace with actual BiliBili URL
+		// },
+	],
 };
 
 export const licenseConfig: LicenseConfig = {

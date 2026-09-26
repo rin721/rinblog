@@ -46,7 +46,10 @@ onMount(() => {
 
 	if (categories.length > 0) {
 		filteredPosts = filteredPosts.filter(
-			(post) => post.category && categories.includes(post.category),
+			(post) =>
+				post.categoryId &&
+				(categories.includes(post.categoryId) ||
+					categories.includes(post.category)),
 		);
 	}
 

@@ -16,6 +16,7 @@ const len = page.data.length;
 ---
 
 <MainGridLayout locale={locale}>
+    {len === 0 && <div class="card-base p-8 text-center text-50">{locale === "zh" ? "这里还没有内容。" : "Nothing here yet."}</div>}
     <PostPage page={page} locale={locale}></PostPage>
     <Pagination class="mx-auto onload-animation" page={page} locale={locale} style={`animation-delay: calc(var(--content-delay) + ${len * 50}ms)`}></Pagination>
 </MainGridLayout>

@@ -1,7 +1,172 @@
 @reference "./theme.css";
 
+.custom-md section:has(> .friend-card) {
+	display: grid;
+	grid-template-columns: repeat(var(--friend-markdown-columns-mobile, 1), minmax(0, 1fr));
+	gap: var(--friend-markdown-gap, 16px);
+}
+
+.custom-md section:has(> .friend-card) > :not(.friend-card) {
+	grid-column: 1 / -1;
+}
+
+.custom-md .friend-card {
+	position: relative;
+	display: flex;
+	min-width: 0;
+	align-items: center;
+	gap: 0.875rem;
+	padding: 0.75rem 1rem;
+	overflow: visible;
+	color: inherit;
+	text-decoration: none;
+	background: var(--btn-card-bg-hover);
+	transition: background-color 300ms, transform 300ms;
+}
+
+.custom-md .friend-card:hover {
+	z-index: 20;
+	background: var(--btn-card-bg-active);
+	transform: translateY(-1px);
+}
+
+.custom-md .friend-card-info {
+	display: flex;
+	min-width: 0;
+	flex: 1;
+	flex-direction: column;
+	gap: 0.125rem;
+}
+
+.custom-md .friend-card-icon {
+	position: relative;
+	width: 2.5rem;
+	height: 2.5rem;
+	flex: 0 0 2.5rem;
+	overflow: hidden;
+	border-radius: 0.625rem;
+	background: var(--btn-regular-bg);
+}
+
+.custom-md .friend-card-icon-image,
+.custom-md .friend-card-icon-fallback {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	object-fit: cover;
+}
+
+.custom-md .friend-card-icon-fallback {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--primary);
+	font-size: 1rem;
+}
+
+.custom-md .friend-card-icon-fallback[hidden] {
+	display: none;
+}
+
+.custom-md .friend-card-heading {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	min-width: 0;
+}
+
+.custom-md .friend-card-title {
+	min-width: 0;
+	overflow: hidden;
+	color: var(--deep-text);
+	font-size: 1.05rem;
+	font-weight: 700;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.custom-md .friend-card-arrow {
+	position: relative;
+	flex: 0 0 auto;
+	color: var(--text-75);
+	font-size: 1rem;
+	line-height: 1;
+	transition: color 300ms, opacity 300ms, transform 300ms;
+}
+
+.custom-md .friend-card-link-preview {
+	position: absolute;
+	top: 50%;
+	left: calc(100% + 0.625rem);
+	z-index: 40;
+	width: max-content;
+	max-width: min(22rem, calc(100vw - 2rem));
+	padding: 0.5rem 0.75rem;
+	color: var(--text-75);
+	font-size: 0.75rem;
+	line-height: 1.4;
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	word-break: break-all;
+	translate: 0 calc(-50% - 0.25rem);
+	transition: opacity 200ms, translate 200ms, visibility 200ms;
+}
+
+.custom-md .friend-card-arrow:hover .friend-card-link-preview,
+.custom-md .friend-card:focus-visible .friend-card-link-preview {
+	opacity: 1;
+	translate: 0 -50%;
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+}
+
+.custom-md .friend-card:hover .friend-card-arrow {
+	transform: translate(0.125rem, -0.125rem);
+	color: var(--primary);
+}
+
+.custom-md .friend-card-description {
+	display: -webkit-box;
+	width: 100%;
+	overflow: hidden;
+	color: var(--text-50);
+	font-size: 0.875rem;
+	line-height: 1.35;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+}
+
+@media (min-width: 48rem) {
+	.custom-md section:has(> .friend-card) {
+		grid-template-columns: repeat(var(--friend-markdown-columns-tablet, 2), minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 47.999rem) {
+	.custom-md .friend-card-link-preview {
+		top: calc(100% + 0.5rem);
+		right: 0;
+		left: auto;
+		translate: 0 -0.25rem;
+	}
+
+	.custom-md .friend-card-arrow:hover .friend-card-link-preview,
+	.custom-md .friend-card:focus-visible .friend-card-link-preview {
+		translate: 0 0;
+	}
+}
+
+@media (min-width: 64rem) {
+	.custom-md section:has(> .friend-card) {
+		grid-template-columns: repeat(var(--friend-markdown-columns-desktop, 2), minmax(0, 1fr));
+	}
+}
+
 .custom-md {
-    &.about-markdown > section:first-child > :is(h1, h2, h3, h4, h5, h6):first-child {
+    &:is(.about-markdown, .friends-markdown) > section:first-child > :is(h1, h2, h3, h4, h5, h6):first-child {
         margin-block-start: 0;
     }
 

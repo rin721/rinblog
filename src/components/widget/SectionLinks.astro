@@ -1,0 +1,24 @@
+---
+import { type ContentType, sectionConfig } from "../../config";
+import { getTypePosts } from "../../utils/content-utils";
+import { type AppLocale, defaultLocale, localePath } from "../../utils/locale";
+import ButtonLink from "../control/ButtonLink.astro";
+import WidgetLayout from "./WidgetLayout.astro";
+
+interface Props {
+	locale?: AppLocale;
+	class?: string;
+	style?: string;
+}
+const { locale = defaultLocale, class: className, style } = Astro.props;
+const sections: ContentType[] = ["diary", "images"];
+const sectionItems = await Promise.all(
+	sections.map(async (section) => ({
+		section,
+		count: (await getTypePosts(locale, section)).length,
+	})),
+);
+---
+<WidgetLayout name={locale === "zh" ? "专题" : "Sections"} id="sections" locale={locale} class={className} style={style}>
+  {sectionItems.map(({ section, count }) => <ButtonLink url={localePath(locale, section)} badge={String(count)}>{sectionConfig[section][locale]}</ButtonLink>)}
+</WidgetLayout>

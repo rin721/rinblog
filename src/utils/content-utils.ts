@@ -1,5 +1,3 @@
-import I18nKey from "@i18n/i18nKey";
-import { i18n } from "@i18n/translation";
 import type { AppLocale } from "@utils/locale";
 import { getCategoryUrl } from "@utils/url-utils";
 import { type BlogPost, postsFor } from "@/lib/posts";
@@ -12,6 +10,15 @@ export type PostForList = {
 
 export async function getSortedPosts(locale: AppLocale): Promise<BlogPost[]> {
 	return postsFor(locale);
+}
+
+export async function getTypePosts(
+	locale: AppLocale,
+	type: BlogPost["data"]["type"],
+): Promise<BlogPost[]> {
+	return (await postsFor(locale)).filter(
+		(post) => post.data.type === type,
+	);
 }
 
 export async function getSortedPostsList(
@@ -49,6 +56,7 @@ export async function getTagList(locale: AppLocale): Promise<Tag[]> {
 }
 
 export type Category = {
+	id: string;
 	name: string;
 	count: number;
 	url: string;
@@ -58,26 +66,24 @@ export async function getCategoryList(locale: AppLocale): Promise<Category[]> {
 	const allBlogPosts = await postsFor(locale);
 	const count: { [key: string]: number } = {};
 	allBlogPosts.forEach((post) => {
-		if (!post.data.category) {
-			const ucKey = i18n(I18nKey.uncategorized, locale);
-			count[ucKey] = count[ucKey] ? count[ucKey] + 1 : 1;
-			return;
-		}
-
-		const categoryName = String(post.data.category).trim();
-		count[categoryName] = count[categoryName] ? count[categoryName] + 1 : 1;
+		const id = post.data.categoryId;
+		count[id] = count[id] ? count[id] + 1 : 1;
 	});
 
-	const lst = Object.keys(count).sort((a, b) => {
-		return a.toLowerCase().localeCompare(b.toLowerCase());
-	});
+	const lst = Object.keys(count).sort((a, b) =>
+		a.toLowerCase().localeCompare(b.toLowerCase()),
+	);
 
 	const ret: Category[] = [];
-	for (const c of lst) {
+	for (const id of lst) {
 		ret.push({
-			name: c,
-			count: count[c],
-			url: getCategoryUrl(c, locale),
+			id,
+			name: String(
+				allBlogPosts.find((post) => post.data.categoryId === id)?.data
+					.category ?? id,
+			),
+			count: count[id],
+			url: getCategoryUrl(id, locale),
 		});
 	}
 	return ret;

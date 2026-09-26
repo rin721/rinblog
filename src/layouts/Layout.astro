@@ -4,7 +4,7 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
 import ConfigCarrier from "@components/ConfigCarrier.astro";
-import { siteConfig, siteText } from "@/config";
+import { friendsMarkdownConfig, siteConfig, siteText } from "@/config";
 import {
 	AUTO_MODE,
 	BANNER_HEIGHT,
@@ -21,7 +21,7 @@ import { type AppLocale, defaultLocale, isHomePath } from "../utils/locale";
 import { getRssUrl, url } from "../utils/url-utils";
 import "katex/dist/katex.css";
 // 第三方样式必须作为页面级 CSS 导入：软导航时 swup 会更新 head，
-// 由 JS 运行时注入的 <style>（例如从 <script> 里 import 的 CSS）会被删除，
+// 由 JS 运行时注入的样式（例如从页面脚本导入的 CSS）会被删除，
 // 灯箱就会丢掉 position/z-index 而沉到正文下面。
 import "photoswipe/style.css";
 import "overlayscrollbars/overlayscrollbars.css";
@@ -90,6 +90,7 @@ const bannerOffset =
 
 <!DOCTYPE html>
 <html lang={siteLang} class="bg-[var(--page-bg)] transition text-[14px] md:text-[16px]"
+	  style={`--friend-markdown-columns-mobile:${friendsMarkdownConfig.columns.mobile};--friend-markdown-columns-tablet:${friendsMarkdownConfig.columns.tablet};--friend-markdown-columns-desktop:${friendsMarkdownConfig.columns.desktop};--friend-markdown-gap:${friendsMarkdownConfig.gap}px`}
 	  data-overlayscrollbars-initialize
 >
 	<head>
@@ -208,11 +209,17 @@ document.addEventListener("click", (event) => {
 function localizedSwitchUrl(link: HTMLAnchorElement, target: string): string | undefined {
 	const current = window.location.pathname.replace(/^\/en(?:\/|$)/, "").replace(/^\/+|\/+$/g, "");
 	const isPage = /^\d+$/.test(current);
-	if (current !== "" && current !== "archive" && current !== "about" && !isPage) {
+	const sectionPage = /^(diary|images|friends)(?:\/\d+)?$/.test(current);
+	if (current !== "" && current !== "archive" && current !== "about" && !sectionPage && !isPage) {
 		return target === "en" ? "/en/" : "/";
 	}
 	const targetPageCount = Number(link.dataset.targetPageCount);
-	const path = isPage && Number(current) > targetPageCount ? "" : current;
+	const pageNumber = current.match(/^(diary|images)\/(\d+)$/);
+	const path = isPage && Number(current) > targetPageCount
+		? ""
+		: pageNumber && Number(pageNumber[2]) > targetPageCount
+			? pageNumber[1]
+			: current;
 	return `${target === "en" ? "/en" : ""}/${path ? `${path}/` : ""}`;
 }
 
@@ -489,7 +496,8 @@ const setup = () => {
 	window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
 		// change banner height immediately when a link is clicked
 		const bodyElement = document.querySelector('body')
-		if (isHomePath(new URL(visit.to.url, window.location.origin).pathname)) {
+		const targetPath = new URL(visit.to.url, window.location.origin).pathname;
+		if (isHomePath(targetPath)) {
 			bodyElement!.classList.add('is-home');
 		} else {
 			bodyElement!.classList.remove('is-home');
@@ -508,6 +516,7 @@ const setup = () => {
 		}
 	});
 	window.swup.hooks.on('page:view', () => {
+		document.dispatchEvent(new CustomEvent('image-filters:refresh'));
 		// hide the temp high element when the transition is done
 		const heightExtend = document.getElementById('page-height-extend')
 		if (heightExtend) {

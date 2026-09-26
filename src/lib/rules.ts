@@ -1,4 +1,4 @@
-export type Kind = "article" | "diary" | "note";
+export type Kind = string;
 export type Presentation = "text" | "illustrated" | "gallery";
 export interface Sortable {
 	publishedAt: Date;

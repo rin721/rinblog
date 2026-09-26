@@ -47,7 +47,7 @@ describe("站内链接", () => {
 	it("标签与分类筛选带上语言与查询参数", () => {
 		expect(getTagUrl("学习", "zh")).toBe(`/archive/?tag=${encodeURIComponent("学习")}`);
 		expect(getTagUrl("Learning", "en")).toBe(`/en/archive/?tag=${encodeURIComponent("Learning")}`);
-		expect(getCategoryUrl("学习笔记", "zh")).toContain("/archive/?category=");
+		expect(getCategoryUrl("note", "zh")).toContain("/archive/?category=note");
 	});
 });
 
@@ -57,6 +57,9 @@ describe("语言切换", () => {
 		expect(switchLocaleUrl("/en/", "zh")).toBe("/");
 		expect(switchLocaleUrl("/archive/", "en")).toBe("/en/archive/");
 		expect(switchLocaleUrl("/en/about/", "zh")).toBe("/about/");
+		expect(switchLocaleUrl("/diary/", "en")).toBe("/en/diary/");
+		expect(switchLocaleUrl("/en/images/2/", "zh", 3)).toBe("/images/2/");
+		expect(switchLocaleUrl("/en/photos/2/", "zh")).toBeUndefined();
 		expect(switchLocaleUrl("/2/", "en")).toBe("/en/2/");
 		expect(switchLocaleUrl("/en/3/", "zh")).toBe("/3/");
 	});

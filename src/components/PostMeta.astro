@@ -12,6 +12,7 @@ interface Props {
 	updated?: Date;
 	tags: string[];
 	category: string | null;
+	categoryId?: string;
 	hideTagsForMobile?: boolean;
 	hideUpdateDate?: boolean;
 	locale?: AppLocale;
@@ -21,6 +22,7 @@ const {
 	updated,
 	tags,
 	category,
+	categoryId,
 	hideTagsForMobile = false,
 	hideUpdateDate = false,
 	locale = defaultLocale,
@@ -56,7 +58,7 @@ const className = Astro.props.class;
             <Icon name="material-symbols:book-2-outline-rounded" class="text-xl"></Icon>
         </div>
         <div class="flex flex-row flex-nowrap items-center">
-            <a href={getCategoryUrl(category, locale)} aria-label={`${i18n(I18nKey.viewCategory, locale)} ${category || i18n(I18nKey.uncategorized, locale)}`}
+            <a href={getCategoryUrl(categoryId ?? category, locale)} aria-label={`${i18n(I18nKey.viewCategory, locale)} ${category || i18n(I18nKey.uncategorized, locale)}`}
                class="link-lg transition text-50 text-sm font-medium
                             hover:text-[var(--primary)] dark:hover:text-[var(--primary)] whitespace-nowrap">
                 {category || i18n(I18nKey.uncategorized, locale)}

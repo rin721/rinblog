@@ -1,0 +1,43 @@
+---
+import type { BlogPost } from "../lib/posts";
+import type { AppLocale } from "../utils/locale";
+import { getPostUrl } from "../utils/url-utils";
+import { imagesPageConfig } from "../config";
+import ImageWrapper from "./misc/ImageWrapper.astro";
+
+interface Props {
+	posts: BlogPost[];
+	locale: AppLocale;
+}
+const { posts, locale } = Astro.props;
+const { columns, gap } = imagesPageConfig.gallery;
+const galleryStyle = `--gallery-columns-mobile: ${columns.mobile}; --gallery-columns-tablet: ${columns.tablet}; --gallery-columns-desktop: ${columns.desktop}; --gallery-gap: ${gap}px;`;
+---
+<div class="image-gallery" style={galleryStyle}>
+  {posts.map((post, index) => post.cover && <a href={getPostUrl(locale, post.slug)} data-image-card data-title={post.data.title} data-category-id={post.data.categoryId} data-category={post.data.category} data-tags={post.data.tags.join("\u001f")} class="group mb-4 block break-inside-avoid overflow-hidden rounded-2xl bg-[var(--card-bg)] transition duration-300 hover:-translate-y-1 active:scale-[0.99] onload-animation" style={`animation-delay: calc(var(--content-delay) + ${index * 50}ms)`}>
+    <ImageWrapper src={post.cover} alt={post.data.title} class="w-full transition duration-500 group-hover:scale-[1.02]" />
+    <div class="flex items-baseline justify-between gap-3 px-4 py-3">
+      <h2 class="font-bold text-75 line-clamp-2">{post.data.title}</h2>
+      <time class="shrink-0 text-sm text-50" datetime={post.publishedAt.toISOString()}>{post.publishedAt.toLocaleDateString(locale === "zh" ? "zh-CN" : "en", { year: "numeric", month: "short", day: "numeric" })}</time>
+    </div>
+  </a>)}
+</div>
+
+<style>
+	.image-gallery {
+		column-count: var(--gallery-columns-mobile);
+		column-gap: var(--gallery-gap);
+	}
+
+	@media (min-width: 40rem) {
+		.image-gallery {
+			column-count: var(--gallery-columns-tablet);
+		}
+	}
+
+	@media (min-width: 80rem) {
+		.image-gallery {
+			column-count: var(--gallery-columns-desktop);
+		}
+	}
+</style>

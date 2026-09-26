@@ -7,5 +7,6 @@ export interface ArchivePost {
 	title: string;
 	tags: string[];
 	category: string;
+	categoryId: string;
 	published: string;
 }

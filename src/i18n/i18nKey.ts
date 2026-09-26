@@ -1,8 +1,15 @@
 enum I18nKey {
 	home = "home",
 	about = "about",
+	friends = "friends",
 	archive = "archive",
 	search = "search",
+	imageFilters = "imageFilters",
+	filterCategory = "filterCategory",
+	filterTag = "filterTag",
+	clearFilters = "clearFilters",
+	noImageResults = "noImageResults",
+	friendsVisit = "friendsVisit",
 
 	tags = "tags",
 	categories = "categories",

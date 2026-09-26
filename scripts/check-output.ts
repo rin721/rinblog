@@ -32,13 +32,16 @@ async function htmlFiles(dir: string): Promise<string[]> {
 
 for (const required of [
 	"index.html",
-	"2/index.html",
 	"archive/index.html",
 	"about/index.html",
+	"diary/index.html",
+	"images/index.html",
 	"404.html",
 	"en/index.html",
 	"en/archive/index.html",
 	"en/about/index.html",
+	"en/diary/index.html",
+	"en/images/index.html",
 	"rss.xml",
 	"en/rss.xml",
 	"sitemap-index.xml",
@@ -46,6 +49,10 @@ for (const required of [
 	"pagefind/pagefind.js",
 ]) {
 	if (!(await exists(path.join(dist, required)))) fail(`缺少必需产物：${required}`);
+}
+
+for (const removed of ["photos/index.html", "en/photos/index.html"]) {
+	if (await exists(path.join(dist, removed))) fail(`不应生成旧图片路由：${removed}`);
 }
 
 const pages = await htmlFiles(dist);

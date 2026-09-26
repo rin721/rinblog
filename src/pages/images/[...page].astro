@@ -1,0 +1,15 @@
+---
+import type { GetStaticPaths } from "astro";
+import ImageFilters from "../../components/ImageFilters.astro";
+import ImageGallery from "../../components/ImageGallery.astro";
+import { imagesPageConfig, sectionConfig } from "../../config";
+import { PAGE_SIZE } from "../../constants/constants";
+import MainGridLayout from "../../layouts/MainGridLayout.astro";
+import { getTypePosts } from "../../utils/content-utils";
+export const getStaticPaths = (async ({ paginate }) =>
+	paginate(await getTypePosts("zh", "images"), {
+		pageSize: PAGE_SIZE,
+	})) satisfies GetStaticPaths;
+const posts = await getTypePosts("zh", "images");
+---
+<MainGridLayout title={sectionConfig.images.zh} locale="zh" showSidebar={imagesPageConfig.sidebar.list}><ImageFilters posts={posts} locale="zh" /><ImageGallery posts={posts} locale="zh" /><div id="image-pagination" class="flex flex-row justify-center gap-3 mb-4"></div></MainGridLayout>

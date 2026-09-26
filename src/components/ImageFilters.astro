@@ -1,0 +1,229 @@
+---
+import I18nKey from "../i18n/i18nKey";
+import { i18n } from "../i18n/translation";
+import { Icon } from "astro-icon/components";
+import type { BlogPost } from "../lib/posts";
+import type { AppLocale } from "../utils/locale";
+import ButtonTag from "./control/ButtonTag.astro";
+
+interface Props {
+	posts: BlogPost[];
+	locale: AppLocale;
+}
+
+const { posts, locale } = Astro.props;
+const categories = [...new Map(posts.map((post) => [post.data.categoryId, post.data.category])).entries()]
+	.sort(([a], [b]) => a.localeCompare(b));
+const tags = [...new Set(posts.flatMap((post) => post.data.tags))].sort((a, b) => a.localeCompare(b));
+const labels = {
+	category: i18n(I18nKey.filterCategory, locale),
+	tag: i18n(I18nKey.filterTag, locale),
+	clear: i18n(I18nKey.clearFilters, locale),
+	noResults: i18n(I18nKey.noImageResults, locale),
+	search: i18n(I18nKey.search, locale),
+};
+const basePath = locale === "en" ? "/en/images/" : "/images/";
+---
+
+<div id="image-filters" data-base-path={basePath} data-page-size="10" data-no-results={labels.noResults} class="card-base mb-4 overflow-visible bg-white p-4 md:p-6">
+		<div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)]">
+		<label class="flex min-w-0 flex-col gap-1 text-sm text-60">
+			<span>{labels.category}</span>
+			<div class="relative">
+				<input type="hidden" data-filter-category value="" />
+				<ButtonTag href="#" dataFilterTrigger="category" dataLabel={labels.category} class="btn-plain flex h-11 w-full items-center justify-between rounded-lg bg-black/[0.04] px-3 text-left text-sm text-50 dark:bg-white/5">
+					<span data-filter-category-label data-default-label={labels.category}>{labels.category}</span><Icon name="material-symbols:arrow-drop-down" class="text-lg" />
+				</ButtonTag>
+				<div data-filter-category-menu class="float-panel float-panel-closed absolute left-0 right-0 top-12 z-50 max-h-64 overflow-y-auto p-2">
+					<ButtonTag href="#" dataValue="" dataLabel={labels.category} class="btn-plain flex h-10 w-full items-center justify-between rounded-lg px-3 text-left text-sm"><span>{labels.category}</span><Icon data-filter-check="" name="material-symbols:check-rounded" class="hidden text-lg text-[var(--primary)]" /></ButtonTag>
+					{categories.map(([id, name]) => <ButtonTag href="#" dataValue={id} dataLabel={name} class="btn-plain flex h-10 w-full items-center justify-between rounded-lg px-3 text-left text-sm"><span>{name}</span><Icon data-filter-check={id} name="material-symbols:check-rounded" class="hidden text-lg text-[var(--primary)]" /></ButtonTag>)}
+				</div>
+			</div>
+		</label>
+		<label class="flex min-w-0 flex-col gap-1 text-sm text-60">
+			<span>{labels.tag}</span>
+			<div class="relative">
+				<input type="hidden" data-filter-tag value="" />
+				<ButtonTag href="#" dataFilterTrigger="tag" dataLabel={labels.tag} class="btn-plain flex h-11 w-full items-center justify-between rounded-lg bg-black/[0.04] px-3 text-left text-sm text-50 dark:bg-white/5">
+					<span data-filter-tag-label data-default-label={labels.tag}>{labels.tag}</span><Icon name="material-symbols:arrow-drop-down" class="text-lg" />
+				</ButtonTag>
+				<div data-filter-tag-menu class="float-panel float-panel-closed absolute left-0 right-0 top-12 z-50 max-h-64 overflow-y-auto p-2">
+					<ButtonTag href="#" dataValue="" dataLabel={labels.tag} class="btn-plain flex h-10 w-full items-center justify-between rounded-lg px-3 text-left text-sm"><span>{labels.tag}</span><Icon data-filter-check="" name="material-symbols:check-rounded" class="hidden text-lg text-[var(--primary)]" /></ButtonTag>
+					{tags.map((tag) => <ButtonTag href="#" dataValue={tag} dataLabel={tag} class="btn-plain flex h-10 w-full items-center justify-between rounded-lg px-3 text-left text-sm"><span>{tag}</span><Icon data-filter-check={tag} name="material-symbols:check-rounded" class="hidden text-lg text-[var(--primary)]" /></ButtonTag>)}
+				</div>
+			</div>
+		</label>
+		<label class="flex min-w-0 flex-col gap-1 text-sm text-60">
+			<span>{labels.search}</span>
+			<div class="relative">
+				<input data-filter-query type="search" placeholder={labels.search} class="h-11 w-full rounded-lg bg-black/[0.04] px-3 pr-11 text-sm text-90 outline-0 transition focus:bg-black/[0.06] dark:bg-white/5 dark:focus:bg-white/10" />
+				<button type="button" data-clear-filters aria-label={labels.clear} class="btn-plain absolute right-1 top-1 hidden h-9 w-9 rounded-lg active:scale-90"><Icon name="material-symbols:close-rounded" class="text-lg" /></button>
+			</div>
+		</label>
+		</div>
+</div>
+
+<script>
+	const setupImageFilters = () => {
+		const panel = document.querySelector<HTMLElement>("#image-filters");
+		const gallery = document.querySelector<HTMLElement>(".image-gallery");
+		if (!panel || !gallery || panel.dataset.initialized === "true") return;
+		panel.dataset.initialized = "true";
+		const cards = [...gallery.querySelectorAll<HTMLElement>("[data-image-card]")];
+		const category = panel.querySelector<HTMLInputElement>("[data-filter-category]");
+		const tag = panel.querySelector<HTMLInputElement>("[data-filter-tag]");
+		const categoryLabel = panel.querySelector<HTMLElement>("[data-filter-category-label]");
+		const tagLabel = panel.querySelector<HTMLElement>("[data-filter-tag-label]");
+		const categoryMenu = panel.querySelector<HTMLElement>("[data-filter-category-menu]");
+		const tagMenu = panel.querySelector<HTMLElement>("[data-filter-tag-menu]");
+		const query = panel.querySelector<HTMLInputElement>("[data-filter-query]");
+		const pagination = document.querySelector<HTMLElement>("#image-pagination");
+		const basePath = panel.dataset.basePath ?? "/images/";
+		const pageSize = Number(panel.dataset.pageSize ?? "10");
+		const noResults = panel.dataset.noResults ?? "No results.";
+
+		const readState = () => {
+			const params = new URL(window.location.href).searchParams;
+			return {
+				categories: params.getAll("category"),
+				tags: params.getAll("tag"),
+				query: params.get("q") ?? "",
+				page: Math.max(1, Number(window.location.pathname.match(/\/(\d+)\/?$/)?.[1] ?? "1")),
+			};
+		};
+
+		const setUrl = (state: { categories: string[]; tags: string[]; query: string; page: number }, replace = false) => {
+			const url = new URL(window.location.href);
+			url.pathname = state.page > 1 ? `${basePath}${state.page}/` : basePath;
+			url.search = "";
+			state.categories.forEach((value) => url.searchParams.append("category", value));
+			state.tags.forEach((value) => url.searchParams.append("tag", value));
+			if (state.query) url.searchParams.set("q", state.query);
+			if (replace) window.history.replaceState({}, "", url);
+			else window.history.pushState({}, "", url);
+		};
+
+		const render = () => {
+			const state = readState();
+			if (category) category.value = state.categories.join("\u001f");
+			if (tag) tag.value = state.tags.join("\u001f");
+			const selectedCategories = state.categories.map((value) => panel.querySelector<HTMLElement>(`[data-filter-category-menu] [data-filter-value="${CSS.escape(value)}"]`)?.dataset.filterLabel ?? value);
+			const selectedTags = state.tags.map((value) => panel.querySelector<HTMLElement>(`[data-filter-tag-menu] [data-filter-value="${CSS.escape(value)}"]`)?.dataset.filterLabel ?? value);
+			if (categoryLabel) categoryLabel.textContent = selectedCategories.join("、") || categoryLabel.dataset.defaultLabel || "";
+			if (tagLabel) tagLabel.textContent = selectedTags.join("、") || tagLabel.dataset.defaultLabel || "";
+			panel.querySelectorAll<HTMLElement>("[data-filter-category-menu] [data-filter-value]").forEach((option) => {
+				const selected = state.categories.includes(option.dataset.filterValue ?? "");
+				option.classList.toggle("text-[var(--primary)]", selected);
+				option.querySelector<HTMLElement>("[data-filter-check]")?.classList.toggle("hidden", !selected);
+			});
+			panel.querySelectorAll<HTMLElement>("[data-filter-tag-menu] [data-filter-value]").forEach((option) => {
+				const selected = state.tags.includes(option.dataset.filterValue ?? "");
+				option.classList.toggle("text-[var(--primary)]", selected);
+				option.querySelector<HTMLElement>("[data-filter-check]")?.classList.toggle("hidden", !selected);
+			});
+			if (query) query.value = state.query;
+			panel.querySelector<HTMLElement>("[data-clear-filters]")?.classList.toggle("hidden", !state.categories.length && !state.tags.length && !state.query);
+			const normalizedQuery = state.query.trim().toLocaleLowerCase();
+			const filtered = cards.filter((card) => {
+				const haystack = [card.dataset.title, card.dataset.categoryId, card.dataset.category, card.dataset.tags]
+					.filter(Boolean)
+					.join(" ")
+					.toLocaleLowerCase();
+				return (!state.categories.length || state.categories.includes(card.dataset.categoryId ?? ""))
+					&& (!state.tags.length || state.tags.some((value) => (card.dataset.tags ?? "").split("\u001f").includes(value)))
+					&& (!normalizedQuery || haystack.includes(normalizedQuery));
+			});
+			const totalPages = Math.ceil(filtered.length / pageSize);
+			const page = totalPages ? Math.min(state.page, totalPages) : 1;
+			if (page !== state.page) setUrl({ ...state, page }, true);
+			cards.forEach((card) => card.classList.toggle("hidden", !filtered.includes(card) || filtered.indexOf(card) < (page - 1) * pageSize || filtered.indexOf(card) >= page * pageSize));
+			let empty = gallery.querySelector<HTMLElement>("[data-image-empty]");
+			if (!empty) {
+				empty = document.createElement("div");
+				empty.dataset.imageEmpty = "true";
+				empty.className = "card-base col-span-full p-8 text-center text-50";
+				gallery.append(empty);
+			}
+			empty.textContent = noResults;
+			empty.classList.toggle("hidden", filtered.length > 0);
+			if (pagination) {
+				pagination.replaceChildren();
+				for (let index = 1; index <= totalPages; index += 1) {
+					const link = document.createElement("a");
+					link.href = `${basePath}${index > 1 ? `${index}/` : ""}${window.location.search}`;
+					link.textContent = String(index);
+					link.className = `btn-card flex h-11 w-11 items-center justify-center rounded-lg ${index === page ? "bg-[var(--primary)] text-white" : ""}`;
+					link.addEventListener("click", (event) => {
+						event.preventDefault();
+						setUrl({ ...state, page: index });
+						render();
+					});
+					pagination.append(link);
+				}
+			}
+		};
+
+		const values = (input: HTMLInputElement | null) => input?.value.split("\u001f").filter(Boolean) ?? [];
+		const toggleValue = (input: HTMLInputElement | null, value: string) => {
+			if (!input) return;
+			if (!value) {
+				input.value = "";
+				return;
+			}
+			const selected = values(input);
+			input.value = selected.includes(value) ? selected.filter((item) => item !== value).join("\u001f") : [...selected, value].join("\u001f");
+		};
+		const update = () => {
+			const state = { categories: values(category), tags: values(tag), query: query?.value ?? "", page: 1 };
+			setUrl(state);
+			render();
+		};
+		panel.querySelector<HTMLElement>("[data-filter-trigger=category]")?.addEventListener("click", (event) => {
+			event.preventDefault();
+			categoryMenu?.classList.toggle("float-panel-closed");
+			tagMenu?.classList.add("float-panel-closed");
+		});
+		panel.querySelector<HTMLElement>("[data-filter-trigger=tag]")?.addEventListener("click", (event) => {
+			event.preventDefault();
+			tagMenu?.classList.toggle("float-panel-closed");
+			categoryMenu?.classList.add("float-panel-closed");
+		});
+		panel.querySelectorAll<HTMLElement>("[data-filter-category-menu] [data-filter-value]").forEach((option) => option.addEventListener("click", (event) => {
+			event.preventDefault();
+			toggleValue(category, option.dataset.filterValue ?? "");
+			update();
+		}));
+		panel.querySelectorAll<HTMLElement>("[data-filter-tag-menu] [data-filter-value]").forEach((option) => option.addEventListener("click", (event) => {
+			event.preventDefault();
+			toggleValue(tag, option.dataset.filterValue ?? "");
+			update();
+		}));
+		query?.addEventListener("input", update);
+		panel.querySelector("[data-clear-filters]")?.addEventListener("click", () => {
+			if (category) category.value = "";
+			if (tag) tag.value = "";
+			if (query) query.value = "";
+			setUrl({ categories: [], tags: [], query: "", page: 1 });
+			render();
+		});
+		document.addEventListener("click", (event) => {
+			if (!(event.target instanceof Node) || panel.contains(event.target)) return;
+			categoryMenu?.classList.add("float-panel-closed");
+			tagMenu?.classList.add("float-panel-closed");
+		});
+		document.addEventListener("keydown", (event) => {
+			if (event.key !== "Escape") return;
+			categoryMenu?.classList.add("float-panel-closed");
+			tagMenu?.classList.add("float-panel-closed");
+		});
+		window.addEventListener("popstate", render);
+		render();
+	};
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", setupImageFilters, { once: true });
+	} else {
+		setupImageFilters();
+	}
+	document.addEventListener("image-filters:refresh", setupImageFilters);
+</script>

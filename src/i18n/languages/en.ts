@@ -4,8 +4,15 @@ import type { Translation } from "../translation";
 export const en: Translation = {
 	[Key.home]: "Home",
 	[Key.about]: "About",
+	[Key.friends]: "Friends",
 	[Key.archive]: "Archive",
 	[Key.search]: "Search",
+	[Key.imageFilters]: "Filter images",
+	[Key.filterCategory]: "Category",
+	[Key.filterTag]: "Tag",
+	[Key.clearFilters]: "Clear filters",
+	[Key.noImageResults]: "No images match these filters.",
+	[Key.friendsVisit]: "Visit",
 
 	[Key.tags]: "Tags",
 	[Key.categories]: "Categories",

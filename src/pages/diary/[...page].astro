@@ -1,0 +1,15 @@
+---
+import type { GetStaticPaths } from "astro";
+import Pagination from "../../components/control/Pagination.astro";
+import PostPage from "../../components/PostPage.astro";
+import { sectionConfig } from "../../config";
+import { PAGE_SIZE } from "../../constants/constants";
+import MainGridLayout from "../../layouts/MainGridLayout.astro";
+import { getTypePosts } from "../../utils/content-utils";
+export const getStaticPaths = (async ({ paginate }) =>
+	paginate(await getTypePosts("zh", "diary"), {
+		pageSize: PAGE_SIZE,
+	})) satisfies GetStaticPaths;
+const { page } = Astro.props;
+---
+<MainGridLayout title={sectionConfig.diary.zh} locale="zh">{page.data.length === 0 && <div class="card-base p-8 text-center text-50">这里还没有内容。</div>}<PostPage page={page} locale="zh" /><Pagination page={page} locale="zh" /></MainGridLayout>

@@ -58,7 +58,7 @@ export function getCategoryUrl(
 }
 
 /** 只处理首页、分页与固定页；文章页的语言切换由文章自身按译文决定。 */
-const staticPaths = new Set(["", "archive", "about"]);
+const staticPaths = new Set(["", "archive", "about", "friends", "diary", "images"]);
 
 export function switchLocaleUrl(
 	pathname: string,
@@ -69,6 +69,13 @@ export function switchLocaleUrl(
 	const rest = pathname
 		.replace(new RegExp(`^/${current}/`), "/")
 		.replace(/^\/+|\/+$/g, "");
+	const sectionPage = rest.match(/^(diary|images)\/(\d+)$/);
+	if (sectionPage) {
+		const section = sectionPage[1];
+		return Number(sectionPage[2]) <= targetPageCount
+			? localePath(target, `${section}/${sectionPage[2]}`)
+			: localePath(target, section);
+	}
 	if (/^\d+$/.test(rest)) {
 		return Number(rest) <= targetPageCount
 			? localePath(target, rest)

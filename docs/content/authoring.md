@@ -5,7 +5,9 @@
 创建 `content/posts/my-entry/zh.md`，目录名使用小写英文、数字和连字符。目录标识组成永久链接（中文 `/posts/my-entry/`，英文 `/en/posts/my-entry/`），同一目录下的 `en.md` 是对应英文版本。推荐用生成命令创建中英文草稿：
 
 ```powershell
-pnpm new-post my-entry   # 生成 zh.md 与 en.md 两份草稿
+pnpm new-post my-entry --type home   # 生成 zh.md 与 en.md 两份草稿
+pnpm new-post my-diary --type diary
+pnpm new-post my-images --type images
 ```
 
 分别编辑这两个文件。下面是项目支持的双语模板（译文由作者撰写，不会自动翻译）：
@@ -16,7 +18,8 @@ pnpm new-post my-entry   # 生成 zh.md 与 en.md 两份草稿
 ---
 title: "今天注意到的一件小事"
 publishedAt: 2026-09-23T08:00:00Z
-kind: article # article | diary | note
+type: home # home | diary | images
+category: article # 任意分类 ID；省略时取该 type 的默认分类
 layout: illustrated # text | illustrated | gallery
 tags: ["日常", "观察"]
 summary: "可选摘要；删除此行则从正文生成摘要。"
@@ -38,7 +41,8 @@ draft: true
 ---
 title: "A small thing I noticed today"
 publishedAt: 2026-09-23T08:00:00Z
-kind: article
+type: home
+category: article
 layout: illustrated
 tags: ["Everyday", "Observation"]
 summary: "Optional English summary. Remove this line to generate one from the body."
@@ -54,12 +58,15 @@ Write the English version here. Keep image paths relative to this directory:
 ![Morning light by the window](./morning.png)
 ```
 
-标题、日期、用途（`kind`）、展示形式（`layout`）及至少一个标签必填。每种语言的标题、摘要、标签和正文都应使用该语言。中英文通常共享发布日期、用途、展示形式和图片文件；`coverAlt` 则应按语言翻译。日期统一写成带 `Z` 的 UTC 时间，避免构建环境出现日期偏移。修改文章目录名会改变 URL，应同时处理旧链接。
+标题、日期、展示形式（`layout`）、分类 `category` 及至少一个标签必填。`type` 决定文章列表归属；省略时默认为 `home`。`category` 是文章自定义的分类 ID。每种语言的标题、摘要、标签和正文都应使用该语言。中英文通常共享发布日期、type、category、展示形式和图片文件；`coverAlt` 则应按语言翻译。日期统一写成带 `Z` 的 UTC 时间。修改文章目录名会改变 URL，应同时处理旧链接。
 
 ## 用途与展示形式
 
-- `kind`：`article`（文章）、`diary`（日记）、`note`（学习笔记）。它在界面上映射为侧栏「分类」与归档筛选用的分类名，映射表在 `src/config.ts` 的 `kindLabels`。
-- `layout`：`text`（文字）、`illustrated`（图文）、`gallery`（图片分享）。画廊至少需要一张正文图片。
+- `type`：`home`（首页列表）、`diary`（独立日记页）、`images`（独立图片页）。日记和图片文章不出现在首页，但仍会进入归档、分类、标签、搜索及 RSS；详情页继续使用同一文章模板。
+- `category`：文章自定义的稳定分类 ID，不受配置列表限制，必须由文章提供。`src/config.ts` 的 `categoryConfig.labels` 可选提供中英文显示名；缺失时显示分类 ID。发文命令支持 `--category <分类ID>`。
+- `layout`：`text`（文字）、`illustrated`（图文）、`gallery`（图文展示样式）。图片 type 的每篇文章必须提供 `cover` 或至少一张正文图片，图片页每篇文章以一张封面图展示。
+- 日记页使用现有文章列表卡片；图片页使用响应式瀑布流，只显示图片、标题和日期。默认移动端、平板为 2 列、桌面为 4 列，可在 `src/config.ts` 的 `imagesPageConfig.gallery` 中分别调整 `columns.mobile`、`columns.tablet`、`columns.desktop`，以及列间距 `gap`（像素）。`imagesPageConfig.sidebar.list` 与 `imagesPageConfig.sidebar.post` 分别控制图片列表页和图片文章详情页侧栏，默认均为 `true`。两个页面均支持中英文路由及每页 10 条分页。
+- 图片页顶部提供分类、标签和关键词筛选，筛选状态保存在 `category`、`tag`、`q` 查询参数中，支持复制链接和刷新后恢复。筛选结果覆盖全部图片文章，并继续按每页 10 条分页。
 
 标签是可读名称，同一语言内保持拼写一致；支持中文与含空格的英文，不能包含 `/ # ? %`，避免链接歧义。
 
@@ -67,7 +74,7 @@ Write the English version here. Keep image paths relative to this directory:
 
 图片与文章放在同一目录，用 `![有意义的替代文字](./morning.png)` 引用。主要内容图片使用本地资产以便构建校验与优化；不要把私人图片放进会直接复制到产物的 `public/`。
 
-没有 `cover` 时自动采用正文第一张图片；没有图片时使用无图卡片。纯图片分享可以只写标题、元信息和图片。
+没有 `cover` 时自动采用正文第一张图片；普通文章没有图片时使用无图卡片。图片 type 没有封面和正文图片会导致 `pnpm content:check` 失败，并指出具体文件。
 
 ## 摘要、精选和置顶
 
@@ -81,7 +88,7 @@ Write the English version here. Keep image paths relative to this directory:
 
 - 中文列表、RSS 与搜索只收录中文版本，英文同理。
 - 文章页在有译文时显示「阅读英文版／阅读中文版」入口；没有译文时不显示该入口。
-- 导航栏的语言切换只处理首页、分页、归档与关于页，文章页由上面的译文入口负责。
+- 导航栏的语言切换会保留首页、日记、图片、归档与关于页面类型及有效分页；文章详情页仍由原文章模板处理。
 
 ## 预览与发布
 
@@ -96,3 +103,17 @@ Write the English version here. Keep image paths relative to this directory:
 ## 关于页
 
 关于页正文在 `content/pages/about-zh.md` 与 `content/pages/about-en.md`，分别对应 `/about/` 与 `/en/about/`。只写 `title` 与正文即可。
+
+## 朋友页与链接卡片
+
+`friend` 是全站 Markdown 扩展，可在文章、关于页、朋友页等由 Astro 渲染的 Markdown 文档中使用；朋友页内容在 `content/pages/links-zh.md` 与 `content/pages/links-en.md`，分别对应 `/friends/` 与 `/en/friends/`。每条链接使用一个 `friend` 叶子指令：
+
+```md
+---
+title: 朋友
+---
+
+::friend{title="站点名称" url="https://example.com" icon="/friends/example.png" description="站点简介"}
+```
+
+`title`、`url`、`icon` 必填；`description` 可选。`url` 只允许 `http`、`https` 或 `mailto`。站点图标放在 `public/friends/` 并通过 `/friends/<文件名>` 引用。卡片样式与响应式列数由全站 Markdown 配置提供，在文章和其他 Markdown 页面中也会正常显示；点击卡片即可在新标签页访问站点。列数和间距在 `src/config.ts` 的 `friendsMarkdownConfig` 中配置。

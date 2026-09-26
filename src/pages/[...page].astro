@@ -1,12 +1,12 @@
 ---
 import ListPage from "@components/ListPage.astro";
-import { getSortedPosts } from "@utils/content-utils";
+import { getTypePosts } from "@utils/content-utils";
 import type { GetStaticPaths } from "astro";
 import { PAGE_SIZE } from "../constants/constants";
 
 // 中文是默认语言，直接占用根路径：首页 /、分页 /2/、/3/ …
 export const getStaticPaths = (async ({ paginate }) => {
-	const allBlogPosts = await getSortedPosts("zh");
+	const allBlogPosts = await getTypePosts("zh", "home");
 	return paginate(allBlogPosts, { pageSize: PAGE_SIZE });
 }) satisfies GetStaticPaths;
 

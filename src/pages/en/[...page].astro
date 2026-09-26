@@ -1,11 +1,11 @@
 ---
 import ListPage from "@components/ListPage.astro";
-import { getSortedPosts } from "@utils/content-utils";
+import { getTypePosts } from "@utils/content-utils";
 import type { GetStaticPaths } from "astro";
 import { PAGE_SIZE } from "../../constants/constants";
 
 export const getStaticPaths = (async ({ paginate }) => {
-	const allBlogPosts = await getSortedPosts("en");
+	const allBlogPosts = await getTypePosts("en", "home");
 	return paginate(allBlogPosts, { pageSize: PAGE_SIZE });
 }) satisfies GetStaticPaths;
 

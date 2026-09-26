@@ -20,6 +20,7 @@ const sortedPosts: ArchivePost[] = (await getSortedPostsList(locale)).map(
 		title: post.data.title,
 		tags: post.data.tags,
 		category: post.data.category ?? "",
+		categoryId: post.data.categoryId,
 		published: post.data.published.toISOString(),
 	}),
 );

@@ -10,7 +10,7 @@ import { formatDateToYYYYMMDD } from "@utils/date-utils";
 import type { AppLocale } from "@utils/locale";
 import { getPostUrl } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
-import { licenseConfig, siteText } from "@/config";
+import { licenseConfig, imagesPageConfig, siteText } from "@/config";
 import type { BlogPost } from "@/lib/posts";
 
 interface Props {
@@ -42,6 +42,7 @@ const jsonLd = {
         description={entry.data.description}
         lang={entry.data.lang}
         locale={locale}
+        showSidebar={entry.data.type !== "images" || imagesPageConfig.sidebar.post}
         setOGTypeArticle={true}
         headings={headings}
 >
@@ -89,6 +90,7 @@ const jsonLd = {
                         updated={entry.data.updated}
                         tags={entry.data.tags}
                         category={entry.data.category}
+                        categoryId={entry.data.categoryId}
                         locale={locale}
                 ></PostMetadata>
                 {!entry.cover && <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div>}

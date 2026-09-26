@@ -24,5 +24,9 @@ export function linkPresets(locale: AppLocale): {
 			name: i18n(I18nKey.about, locale),
 			url: localePath(locale, "about"),
 		},
+		[LinkPreset.Friends]: {
+			name: i18n(I18nKey.friends, locale),
+			url: localePath(locale, "friends"),
+		},
 	};
 }

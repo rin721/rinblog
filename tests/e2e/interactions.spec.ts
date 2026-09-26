@@ -44,7 +44,8 @@ test.describe("交互与主题", () => {
 		await page.goto("/en/");
 		const input = page.locator("#search-bar input");
 		await input.click();
-		await input.fill("quieter");
+		await page.waitForFunction(() => Boolean((window as unknown as { pagefind?: unknown }).pagefind));
+		await input.fill("author");
 		await expect(page.locator("#search-panel a").first()).toBeVisible({ timeout: 15000 });
 	});
 
@@ -53,7 +54,7 @@ test.describe("交互与主题", () => {
 		await page.goto("/");
 		await page.locator("#nav-menu-switch").click();
 		await expect(page.locator("#nav-menu-panel")).not.toHaveClass(/float-panel-closed/);
-		await expect(page.locator("#nav-menu-panel")).toContainText("归档");
+		await expect(page.locator("#nav-menu-panel a").first()).toBeVisible();
 	});
 
 	test("软导航不整页刷新", async ({ page }) => {

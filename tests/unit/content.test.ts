@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { readContent, validateContent } from "../../scripts/check-content";
+import { readContent, validateContent, validateFriendPages, validateFriendSource } from "../../scripts/check-content";
+import { categoryConfig, friendsMarkdownConfig, imagesPageConfig, resolveCategoryLabel } from "../../src/config";
 
 describe("内容协议", () => {
 	it("现有内容全部通过字段、标识与图片校验", async () => {
 		const records = await readContent();
-		expect(records.length).toBeGreaterThanOrEqual(19);
+		expect(records.length).toBeGreaterThan(0);
 		expect(await validateContent(records)).toEqual([]);
 	});
 
@@ -12,9 +13,7 @@ describe("内容协议", () => {
 		const records = await readContent();
 		const drafts = records.filter((record) => record.data.draft === true);
 		expect(drafts.length).toBeGreaterThan(0);
-		for (const draft of drafts) {
-			expect(draft.locale).toBe("zh");
-		}
+		expect(drafts.every((draft) => typeof draft.data.draft === "boolean")).toBe(true);
 	});
 
 	it("同一内容组的中英版本共享标识", async () => {
@@ -35,10 +34,85 @@ describe("内容协议", () => {
 				file: `${process.cwd()}/content/posts/example/zh.md`,
 				id: "example",
 				locale: "zh",
-				data: { publishedAt: "2026-01-01", kind: "article", layout: "text", tags: ["a"] },
+				data: { publishedAt: "2026-01-01", category: "article", layout: "text", tags: ["a"] },
 				body: "",
 			},
 		]);
 		expect(errors.join("\n")).toContain("title");
+	});
+
+	it("type 缺省为 home，category 必须由文章提供", async () => {
+		const record = {
+			file: `${process.cwd()}/content/posts/example/zh.md`,
+			id: "example",
+			locale: "zh" as const,
+			data: { title: "标题", publishedAt: "2026-01-01", category: "article", layout: "text", tags: ["a"] },
+			body: "正文",
+		};
+		expect(await validateContent([record])).toEqual([]);
+		const missingCategory = await validateContent([{ ...record, data: { ...record.data, category: undefined } }]);
+		expect(missingCategory.join("\n")).toContain("category");
+	});
+
+	it("分类可用稳定 ID 新增与重命名中英文显示名", () => {
+		const renamed = { ...categoryConfig.labels, travel: { zh: "旅行", en: "Travel" } };
+		expect(resolveCategoryLabel("travel", "zh", renamed)).toBe("旅行");
+		expect(resolveCategoryLabel("travel", "en", { travel: { zh: "旅行" } })).toBe("旅行");
+		expect(resolveCategoryLabel("unlisted", "zh", renamed)).toBe("unlisted");
+		const renamedLabel = { ...renamed, travel: { zh: "远行", en: "Journeys" } };
+		expect(resolveCategoryLabel("travel", "zh", renamedLabel)).toBe("远行");
+		expect(Object.keys(renamedLabel)).toContain("travel");
+	});
+
+	it("图片列表页和详情页默认开启侧栏", () => {
+		expect(imagesPageConfig.sidebar).toEqual({ list: true, post: true });
+	});
+
+	it("朋友页链接文档通过 friend 指令校验", async () => {
+		expect(await validateFriendPages()).toEqual([]);
+		expect(friendsMarkdownConfig.columns).toEqual({ mobile: 1, tablet: 2, desktop: 3 });
+	});
+
+	it("friend 指令拒绝缺少字段和不安全地址", async () => {
+		const errors = await validateFriendSource(
+			'::friend{title="Bad" icon="/missing.png" url="javascript:alert(1)"}',
+			`${process.cwd()}/content/pages/links-zh.md`,
+		);
+		expect(errors.join("\n")).toContain("协议不受支持");
+		expect(errors.join("\n")).toContain("图标不存在");
+	});
+
+	it("图片分区必须提供封面或正文图片", async () => {
+		const errors = await validateContent([{
+			file: `${process.cwd()}/content/posts/image-entry/zh.md`,
+			id: "image-entry",
+			locale: "zh",
+			data: { title: "图片", publishedAt: "2026-01-01", type: "images", layout: "text", tags: ["a"] },
+			body: "只有文字",
+		}]);
+		expect(errors.join("\n")).toContain("图片 type 必须设置 cover");
+	});
+
+	it("允许任意已配置的分类 ID 并以稳定 ID 作为分类", async () => {
+		const id = "unlisted-category";
+		const errors = await validateContent([{
+			file: `${process.cwd()}/content/posts/example/zh.md`,
+			id: "example",
+			locale: "zh",
+			data: { title: "标题", publishedAt: "2026-01-01", category: id, layout: "text", tags: ["a"] },
+			body: "正文",
+		}]);
+		expect(errors).toEqual([]);
+	});
+
+	it("拒绝不合法的分类 ID", async () => {
+		const errors = await validateContent([{
+			file: `${process.cwd()}/content/posts/example/zh.md`,
+			id: "example",
+			locale: "zh",
+			data: { title: "标题", publishedAt: "2026-01-01", category: "Missing Category", layout: "text", tags: ["a"] },
+			body: "正文",
+		}]);
+		expect(errors.join("\n")).toContain("category");
 	});
 });

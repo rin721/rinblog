@@ -1,7 +1,11 @@
 import { type CollectionEntry, getCollection, render } from "astro:content";
 import images, { covers } from "virtual:journal-images";
 import type { ImageMetadata } from "astro";
-import { kindLabels } from "../config";
+import {
+	type ContentType,
+	resolveCategoryLabel,
+	sectionConfig,
+} from "../config";
 import { type AppLocale, localePath, locales } from "../utils/locale";
 import {
 	type Cover,
@@ -13,7 +17,6 @@ import {
 } from "./rules";
 
 export type PostEntry = CollectionEntry<"posts">;
-export type PostKind = "article" | "diary" | "note";
 export type PostLayout = "text" | "illustrated" | "gallery";
 
 /**
@@ -35,7 +38,9 @@ export type PostData = {
 	nextTitle: string;
 	nextSlug: string;
 	// 我们内容模型里保留的字段，界面按需使用
-	kind: PostKind;
+	categoryId: string;
+	type: ContentType;
+	sectionTitle: string;
 	layout: PostLayout;
 	featured: boolean;
 	pinnedOrder?: number;
@@ -64,8 +69,9 @@ export function postUrl(locale: AppLocale, slug: string): string {
 function resolveImage(
 	ref: string | undefined,
 	group: string,
-): ImageMetadata | undefined {
-	if (!ref || /^(?:https?:|data:|\/)/.test(ref)) return undefined;
+): ImageMetadata | string | undefined {
+	if (!ref) return undefined;
+	if (/^(?:https?:|data:|\/)/.test(ref)) return ref;
 	const key = new URL(ref, `https://content.local/content/posts/${group}/`)
 		.pathname;
 	return images[decodeURIComponent(key)];
@@ -80,6 +86,8 @@ function collect(entry: PostEntry): BlogPost {
 	const [group, language] = entry.id.split("/");
 	const locale = (language === "en" ? "en" : "zh") as AppLocale;
 	const body = entry.body ?? "";
+	const type = entry.data.type ?? "home";
+	const categoryId = entry.data.category;
 	// image() 对 SVG 返回组件工厂，这类封面在集合数据里只保留在原始 frontmatter，用虚拟模块的映射回退。
 	const declared = covers[entry.id];
 	const cover =
@@ -102,13 +110,15 @@ function collect(entry: PostEntry): BlogPost {
 			description: summarize(body, entry.data.summary),
 			image: cover,
 			tags: entry.data.tags,
-			category: kindLabels[locale][entry.data.kind],
+			category: resolveCategoryLabel(categoryId, locale),
 			lang: locale === "en" ? "en" : "zh-CN",
 			prevTitle: "",
 			prevSlug: "",
 			nextTitle: "",
 			nextSlug: "",
-			kind: entry.data.kind,
+			categoryId,
+			type,
+			sectionTitle: sectionConfig[type][locale],
 			layout: entry.data.layout,
 			featured: entry.data.featured,
 			pinnedOrder: entry.data.pinnedOrder,

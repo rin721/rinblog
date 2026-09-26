@@ -45,6 +45,18 @@ html.is-animating .transition-swup-fade {
     animation-delay: 400ms;
 }
 
+/* The page shell remains mounted during Swup navigation; the replaced content container carries the layout state. */
+#main-grid:has(#swup-container[data-show-sidebar="false"]) {
+    grid-template-columns: minmax(0, 1fr);
+}
+#main-grid:has(#swup-container[data-show-sidebar="false"]) #sidebar {
+    display: none;
+}
+#main-grid:has(#swup-container[data-show-sidebar="false"]) #swup-container,
+#main-grid:has(#swup-container[data-show-sidebar="false"]) .footer {
+    grid-column: span 1 / span 1;
+}
+
 /* Post content */
 #post-container :nth-child(1) { animation-delay: calc(var(--content-delay) + 0ms) }
 #post-container :nth-child(2) { animation-delay: calc(var(--content-delay) + 50ms) }
@@ -52,5 +64,3 @@ html.is-animating .transition-swup-fade {
 #post-container :nth-child(4) { animation-delay: calc(var(--content-delay) + 175ms) }
 #post-container :nth-child(5) { animation-delay: calc(var(--content-delay) + 250ms) }
 #post-container :nth-child(6) { animation-delay: calc(var(--content-delay) + 325ms) }
-
-

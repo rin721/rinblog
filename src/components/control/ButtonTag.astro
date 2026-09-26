@@ -4,10 +4,14 @@ interface Props {
 	dot?: boolean;
 	href?: string;
 	label?: string;
+	class?: string;
+	dataValue?: string;
+	dataLabel?: string;
+	dataFilterTrigger?: string;
 }
-const { dot, href, label }: Props = Astro.props;
+const { dot, href, label, class: className, dataValue, dataLabel, dataFilterTrigger }: Props = Astro.props;
 ---
-<a href={href} aria-label={label} class="btn-regular h-8 text-sm px-3 rounded-lg">
+<a href={href} aria-label={label} data-filter-value={dataValue} data-filter-label={dataLabel} data-filter-trigger={dataFilterTrigger} class={className || "btn-regular h-8 text-sm px-3 rounded-lg"}>
     {dot && <div class="h-1 w-1 bg-[var(--btn-content)] dark:bg-[var(--card-bg)] transition rounded-md mr-2"></div>}
     <slot></slot>
 </a>

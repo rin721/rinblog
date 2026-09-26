@@ -2,10 +2,17 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const zh_CN: Translation = {
-	[Key.home]: "Home",
-	[Key.about]: "About",
-	[Key.archive]: "Archive",
-	[Key.search]: "Search",
+	[Key.home]: "首页",
+	[Key.about]: "关于",
+	[Key.friends]: "朋友",
+	[Key.archive]: "归档",
+	[Key.search]: "搜索",
+	[Key.imageFilters]: "筛选图片",
+	[Key.filterCategory]: "分类",
+	[Key.filterTag]: "标签",
+	[Key.clearFilters]: "清除筛选",
+	[Key.noImageResults]: "没有符合条件的图片。",
+	[Key.friendsVisit]: "访问",
 
 	[Key.tags]: "标签",
 	[Key.categories]: "分类",

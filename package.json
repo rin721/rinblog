@@ -9,11 +9,11 @@
   },
   "scripts": {
     "dev": "astro dev --host 127.0.0.1",
-    "build": "pnpm content:check && astro build && pagefind --site dist && tsx scripts/check-output.ts",
+		"build": "pnpm content:check && astro build --force && pagefind --site dist && tsx scripts/check-output.ts",
     "preview": "astro preview --host 127.0.0.1",
     "check": "astro check",
     "content:check": "tsx scripts/check-content.ts",
-    "new-post": "node scripts/new-post.js",
+    "new-post": "tsx scripts/new-post.ts",
     "lint": "biome check ./src",
     "format": "biome format --write ./src",
     "test": "vitest run",
