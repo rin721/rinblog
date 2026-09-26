@@ -5,7 +5,7 @@ type: home
 category: "tech"
 layout: text # text | illustrated | gallery
 tags: ["IPv6","NDP Proxy","网络","Linux","Go"]
-draft: true
+draft: false
 # 图片 type 至少需要 cover 或正文图片
 # cover: ./cover.png
 # coverAlt: "图片替代文字"
